@@ -1,0 +1,40 @@
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/release-2.8/manifests/install.yaml
+
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: private-repo
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  url: https://github.com/${GITHUB_USERNAME}/deploy-manifests
+  username: ${GITHUB_USERNAME}
+  password: ${GITHUB_PAT}
+
+---
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kakaocloud-library
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/${GITHUB_USERNAME}/deploy-manifests
+    targetRevision: HEAD
+    path: ./
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kakaocloud-library
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+EOF

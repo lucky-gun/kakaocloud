@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server
+  namespace: kakaocloud-library
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: server
+  template:
+    metadata:
+      labels:
+        app: server
+    spec:
+      containers:
+      - image: {프로젝트명}.kr-central-2.kcr.dev/{Container Registry 레포지토리명}/kakaocloud-library-client:latest
+        name: kakaocloud-library-server
+        ports:
+        - containerPort: 8080
+        env:
+        - name: PROFILE
+          value: "local"
+        - name: SERVER_PORT
+          value: "8080"
+      imagePullSecrets:
+        - name: kc-cr-secret 
